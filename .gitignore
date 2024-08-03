@@ -1,0 +1,26 @@
+# BACKEND
+# Ignore env files
+backend/.env
+
+# FRONTEND
+# dependencies
+frontend/livechat/node_modules
+frontend/livechat/.pnp
+frontend/livechat/.pnp.js
+
+# testing
+frontend/livechat//coverage
+
+# production
+frontend/livechat//build
+
+# misc
+frontend/livechat/.DS_Store
+frontend/livechat/.env.local
+frontend/livechat/.env.development.local
+frontend/livechat/.env.test.local
+frontend/livechat/.env.production.local
+
+frontend/livechat/npm-debug.log*
+frontend/livechat/yarn-debug.log*
+frontend/livechat/yarn-error.log*
