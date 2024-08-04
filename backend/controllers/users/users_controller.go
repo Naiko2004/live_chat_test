@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,4 +61,28 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func GetMe(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	token := strings.Split(authHeader, " ")[1]
+
+	userId, e := usersService.ValidateToken(token)
+	if e != nil {
+		c.JSON(e.Status(), e)
+		return
+	}
+
+	user, e := usersService.GetUserById(userId)
+	if e != nil {
+		c.JSON(e.Status(), e)
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }

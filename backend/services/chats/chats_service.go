@@ -81,3 +81,20 @@ func LeaveChat(userId int, chatId int) e.ApiError {
 
 	return nil
 }
+
+func GetChats() ([]dto.ChatMinDtop, e.ApiError) {
+	chats, err := chatsClient.GetChats()
+	if err != nil {
+		return nil, err
+	}
+
+	var chatsDto []dto.ChatMinDtop
+	for _, chat := range chats {
+		chatsDto = append(chatsDto, dto.ChatMinDtop{
+			Id:   chat.Id,
+			Name: chat.Name,
+		})
+	}
+
+	return chatsDto, nil
+}

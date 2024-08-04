@@ -7,11 +7,13 @@ import (
 	"backend_chat/router"
 )
 
+
 func main() {
 
 	db.StartDbEngine()
 
 	r := gin.Default()
 	router.MapUrls(r)
+
 	r.Run(":8080")
 }

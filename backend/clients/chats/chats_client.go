@@ -58,3 +58,13 @@ func GetChatsByUserId(userId int) ([]chatModel.Chat, e.ApiError) {
 	}
 	return chats, nil
 }
+
+func GetChats() ([]chatModel.Chat, e.ApiError) {
+	var chats []chatModel.Chat
+	err := Db.Find(&chats).Error
+	if err != nil {
+		log.Printf("Error getting chats: %v", err)
+		return nil, e.NewApiError("Error getting chats", "internal_server_error", 500, e.CauseList{})
+	}
+	return chats, nil
+}

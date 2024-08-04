@@ -134,3 +134,14 @@ func LeaveChat(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": "left"})
 }
+
+func GetChats(c *gin.Context) {
+	chats, e := chatsService.GetChats()
+
+	if e != nil {
+		c.JSON(e.Status(), e)
+		return
+	}
+
+	c.JSON(http.StatusOK, chats)
+}

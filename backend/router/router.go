@@ -11,13 +11,16 @@ import (
 func MapUrls(engine *gin.Engine) {
 	// Websocket
 	// Messages
-	engine.GET("/ws", messages.HandleConnections)
+	engine.GET("/ws/chat/:chatId", messages.HandleConnections)
 
 	// Public
 	// Users
 	engine.POST("/users", users.CreateUser)
 	engine.GET("/users/:id", users.GetUserById)
 	engine.PUT("/login", users.Login)
+
+	// Chats
+	engine.GET("/chats/all", chats.GetChats)
 
 	// Private (requires token)
 	// Messages
@@ -30,4 +33,7 @@ func MapUrls(engine *gin.Engine) {
 	engine.GET("user/chats", chats.GetChatsByUserId)
 	engine.POST("/chats/:chatId", chats.JoinChat)
 	engine.DELETE("/chats/:chatId", chats.LeaveChat) // Hard delete
+
+	// Users
+	engine.GET("/me", users.GetMe)
 }

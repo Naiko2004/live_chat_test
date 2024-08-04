@@ -26,43 +26,58 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleConnections(c *gin.Context) {
-	w := c.Writer
-	r := c.Request
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
+var clients = make(map[*websocket.Conn]bool)
+var broadcast = make(chan dto.MessageCreateWSDto)
 
-	for {
-		_, msgJson, readErr := conn.ReadMessage()
-		if readErr != nil {
-			log.Println("Error reading message: ", readErr)
-			return
-		}
-		log.Println("Message received: ", string(msgJson))
-		// Process the Json into a DTO
-		var messageDto dto.MessageCreateWSDto
-		unmarshalErr := json.Unmarshal(msgJson, &messageDto)
-		if unmarshalErr != nil {
-			log.Println("Error unmarshalling: ", unmarshalErr)
-			return
-		}
-		// Create msg in db
-		createErr := messageService.CreateMessageWS(messageDto)
-		if createErr != nil {
-			log.Println("Error creating message: ", createErr)
-			return
-		}
-		// Send the message to all clients
-		writeErr := conn.WriteJSON(messageDto)
-		if writeErr != nil {
-			log.Println("Error sending the msg: ", writeErr)
-			return
-		}
-		log.Println("Message received and sent: ", messageDto)
-	}
+func HandleConnections(c *gin.Context) {
+    w := c.Writer
+    r := c.Request
+    conn, err := upgrader.Upgrade(w, r, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer conn.Close()
+
+    clients[conn] = true
+
+    for {
+        _, msgJson, readErr := conn.ReadMessage()
+        if readErr != nil {
+            log.Println("Error reading message: ", readErr)
+            delete(clients, conn)
+            break
+        }
+        log.Println("Message received: ", string(msgJson))
+
+        var messageDto dto.MessageCreateWSDto
+        unmarshalErr := json.Unmarshal(msgJson, &messageDto)
+        if unmarshalErr != nil {
+            log.Println("Error unmarshalling: ", unmarshalErr)
+            continue
+        }
+
+        createErr := messageService.CreateMessageWS(messageDto)
+        if createErr != nil {
+            log.Println("Error creating message: ", createErr)
+            continue
+        }
+
+        broadcast <- messageDto
+    }
+}
+
+func handleBroadcast() {
+    for {
+        message := <-broadcast
+        for client := range clients {
+            err := client.WriteJSON(message)
+            if err != nil {
+                log.Printf("Error broadcasting message: %v", err)
+                client.Close()
+                delete(clients, client)
+            }
+        }
+    }
 }
 
 func CreateMessage(c *gin.Context) {
